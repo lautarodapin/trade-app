@@ -1,14 +1,34 @@
 package main
 
 import (
+	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"trade-app/models"
 	"trade-app/schemas"
 
 	"github.com/gin-gonic/gin"
 )
+
+
+func readFile(path string) ([][]string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return [][]string{}, err
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	records, err := reader.ReadAll()
+	if err != nil {
+		return [][]string{}, err
+	}
+
+	return records, nil
+}
 
 func main() {
 	r := gin.Default()
@@ -17,24 +37,27 @@ func main() {
 			"message": "pong",
 		})
 	})
-	pairList := []string{
-		"BTCUSDT",
-		"ETHUSDT",
-		"BNBUSDT",
-		"BCCUSDT",
-		"NEOUSDT",
-		"LTCUSDT",
-		"QTUMUSDT",
-		"ADAUSDT",
-		"XRPUSDT",
-		"EOSUSDT",
+	var records [][]string
+	records, _ = readFile("./pair-list.csv")
+	pairList := []string{}
+	for _, v := range records {
+		pairList = append(pairList, v[0])
+	}
+	records, _ = readFile("./users.csv")
+	users := []models.User{}
+	for _, v := range records {
+		id, _ := strconv.Atoi(v[0])
+		user := models.User{
+			Id:        id,
+			FirstName: v[1],
+			LastName:  v[2],
+			Email:     v[3],
+			Token:     v[4],
+			Password:  v[5],
+		}
+		users = append(users, user)
 	}
 	favPairList := pairList[:3]
-	users := [3]models.User{
-		{Id: 1, FirstName: "John", LastName: "Doe", Email: "user1@test.com", Token: "d73e:9666:2dec:2ed8:073f:7f52:1ffc:5b9d", Password: "password"},
-		{Id: 2, FirstName: "Koko", LastName: "Doe", Email: "user2@test.com", Token: "9ae4:9c47:a59f:9427:bc36:f6ec:536f:3c83", Password: "password"},
-		{Id: 3, FirstName: "Francis", LastName: "Sunday", Email: "user3@test.com", Token: "f049:fc4e:eb2a:2d50:2962:5ab7:f5c7:6b96", Password: "password"},
-	}
 
 	users_route := r.Group("/users")
 	{
