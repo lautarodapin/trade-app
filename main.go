@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"trade-app/models"
+	"trade-app/schemas"
+
 	"github.com/gin-gonic/gin"
 )
 
