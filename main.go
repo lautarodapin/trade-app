@@ -7,13 +7,14 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"trade-app/models"
 	"trade-app/schemas"
 
 	"github.com/gin-gonic/gin"
 )
 
-func CORSMiddleware() gin.HandlerFunc {
+func CORSMiddleware(users []models.User) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		c.Header("Access-Control-Allow-Origin", "*")
@@ -21,10 +22,20 @@ func CORSMiddleware() gin.HandlerFunc {
 		c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
 		c.Header("Access-Control-Allow-Methods", "POST,HEAD,PATCH, OPTIONS, GET, PUT")
 
+		token := c.Request.Header.Get("Authorization")
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
 			return
 		}
+		var _user models.User
+		for _, u := range users {
+			if u.Token == strings.Split(token, "Bearer ")[1] {
+				_user = u
+				break
+			}
+		}
+		fmt.Printf("Usuario: %s\n", _user.Email)
+		c.Set("user", _user)
 
 		c.Next()
 	}
@@ -53,7 +64,6 @@ func main() {
 			"message": "pong",
 		})
 	})
-	r.Use(CORSMiddleware())
 	var records [][]string
 	records, _ = readFile("./pair-list.csv")
 	pairList := []string{}
@@ -75,6 +85,7 @@ func main() {
 		users = append(users, user)
 	}
 	favPairList := pairList[:3]
+	r.Use(CORSMiddleware(users))
 
 	users_route := r.Group("/users")
 	{
