@@ -82,5 +82,55 @@ func main() {
 			c.JSON(http.StatusNotFound, gin.H{"detail": fmt.Sprintf("User with id %d not found", id)})
 		})
 	}
+	pair_list_route := r.Group("/pair-list")
+	{
+		pair_list_route.GET("/", func(c *gin.Context) {
+			c.JSON(http.StatusOK, pairList)
+		})
+
+		pair_list_route.GET("/fav", func(c *gin.Context) {
+			c.JSON(http.StatusOK, favPairList)
+		})
+		pair_list_route.POST("/fav", func(c *gin.Context) {
+			var jsonData schemas.Symbol
+			c.BindJSON(&jsonData)
+			symbol := jsonData.Symbol
+			for _, favPair := range favPairList {
+				if favPair == symbol {
+					c.JSON(http.StatusConflict, gin.H{"detail": "Symbol already exists"})
+					return
+				}
+			}
+			favPairList = append(favPairList, symbol)
+			if len(favPairList) > 3 {
+				favPairList = favPairList[1:]
+			}
+			c.JSON(http.StatusCreated, favPairList)
+		})
+		pair_list_route.DELETE("/fav/:index", func(c *gin.Context) {
+			index, _ := strconv.Atoi(c.Param("index"))
+			if index > len(favPairList) {
+				c.JSON(http.StatusNotFound, gin.H{"detail": "Index not found"})
+			} else {
+				favPairList = append(favPairList[:index], favPairList[index+1:]...)
+				c.JSON(http.StatusOK, favPairList)
+			}
+		})
+		pair_list_route.GET("/fav/prices", func(c *gin.Context) {
+			var symbolRequestList []schemas.SymbolRequest
+			for _, favSymbol := range favPairList {
+				resp, err := http.Get(fmt.Sprintf("https://api.binance.com/api/v3/ticker/price?symbol=%s", favSymbol))
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"detail": fmt.Sprintf("Error fetching symbol %s, got %s", favSymbol, err.Error())})
+					return
+				}
+				defer resp.Body.Close()
+				var symbolRequest schemas.SymbolRequest
+				json.NewDecoder(resp.Body).Decode(&symbolRequest)
+				symbolRequestList = append(symbolRequestList, symbolRequest)
+			}
+			c.JSON(http.StatusOK, symbolRequestList)
+		})
+	}
 	r.Run()
 }
