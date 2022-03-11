@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"trade-app/models"
 	"github.com/gin-gonic/gin"
 )
 
