@@ -65,17 +65,19 @@ func InitPairList(db *gorm.DB) {
 
 }
 
-func InitFavPairList(db *gorm.DB) {
-	var users []User
-	var favPairs []FavPair
-	db.Find(&users)
+func InitFavPairList(db *gorm.DB, addInitialValues bool) {
 	db.Unscoped().Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&FavPair{})
-	for _, user := range users {
-		db.Find(&favPairs).Where("user_id = ?", user.ID)
-		for _, initialPair := range initialPartList[:3] {
-			var pair Pair
-			db.Where("symbol = ?", initialPair).First(&pair)
-			db.Create(&FavPair{UserID: user.ID, PairID: pair.ID})
+	var users []User
+	if addInitialValues {
+		var favPairs []FavPair
+		db.Find(&users)
+		for _, user := range users {
+			db.Find(&favPairs).Where("user_id = ?", user.ID)
+			for _, initialPair := range initialPartList[:3] {
+				var pair Pair
+				db.Where("symbol = ?", initialPair).First(&pair)
+				db.Create(&FavPair{UserID: user.ID, PairID: pair.ID})
+			}
 		}
 	}
 }

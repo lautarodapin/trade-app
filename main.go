@@ -47,7 +47,7 @@ func main() {
 	models.AutoMigrate(db)
 	models.InitUsers(db)
 	models.InitPairList(db)
-	models.InitFavPairList(db)
+	models.InitFavPairList(db, false)
 	r := gin.Default()
 	public := r.Group("")
 	private := r.Group("")
