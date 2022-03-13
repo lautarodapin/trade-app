@@ -66,10 +66,6 @@ func main() {
 			"message": "ping",
 		})
 	})
-	var pairList []models.Pair
-	db.Find(&pairList)
-
-	favPairList := pairList[:3]
 	public.POST("/login", func(c *gin.Context) {
 		var userLogin schemas.UserLogin
 		fmt.Printf("userLogin: %+v\n", userLogin)
@@ -153,24 +149,35 @@ func main() {
 			}
 			var pair models.Pair
 			db.Where("symbol = ?", symbol).First(&pair)
-			db.Create(&models.FavPair{UserID: user.ID, PairID: pair.ID})
-			c.JSON(http.StatusCreated, gin.H{"detail": fmt.Sprintf("%s added to fav", symbol)})
+			favPair := models.FavPair{UserID: user.ID, PairID: pair.ID}
+			db.Create(&favPair)
+			c.JSON(http.StatusCreated, favPair)
 		})
-		pair_list_route.DELETE("/fav/:index", func(c *gin.Context) {
-			index, _ := strconv.Atoi(c.Param("index"))
-			if index > len(favPairList) {
-				c.JSON(http.StatusNotFound, gin.H{"detail": "Index not found"})
-			} else {
-				favPairList = append(favPairList[:index], favPairList[index+1:]...)
-				c.JSON(http.StatusOK, favPairList)
+		pair_list_route.DELETE("/fav/:id", func(c *gin.Context) {
+			id, _ := strconv.Atoi(c.Param("id"))
+			user := c.MustGet("user").(models.User)
+			var favPair models.FavPair
+			db.Where("user_id = ?", user.ID).Where("id = ?", id).First(&favPair)
+			if favPair.ID == 0 {
+				c.JSON(http.StatusNotFound, gin.H{"detail": fmt.Sprintf("Fav pair with id %d not found", id)})
+				return
 			}
+			db.Unscoped().Delete(&favPair) // unscoped to ignore softs deletes
+			c.JSON(http.StatusOK, gin.H{"detail": fmt.Sprintf("%d deleted from fav", favPair.ID)})
 		})
 		pair_list_route.GET("/fav/prices", func(c *gin.Context) {
 			var symbolRequestList []schemas.SymbolRequest
-			for _, favSymbol := range favPairList {
-				resp, err := http.Get(fmt.Sprintf("https://api.binance.com/api/v3/ticker/price?symbol=%s", favSymbol))
+			user := c.MustGet("user").(models.User)
+			var favPairList []models.Pair
+			db.
+				Joins("JOIN fav_pairs ON fav_pairs.pair_id = pairs.id").
+				Where("fav_pairs.user_id = ?", user.ID).
+				Find(&favPairList)
+
+			for _, pair := range favPairList {
+				resp, err := http.Get(fmt.Sprintf("https://api.binance.com/api/v3/ticker/price?symbol=%s", pair.Symbol))
 				if err != nil {
-					c.JSON(http.StatusInternalServerError, gin.H{"detail": fmt.Sprintf("Error fetching symbol %s, got %s", favSymbol, err.Error())})
+					c.JSON(http.StatusInternalServerError, gin.H{"detail": fmt.Sprintf("Error fetching symbol %s, got %s", pair.Symbol, err.Error())})
 					return
 				}
 				defer resp.Body.Close()
