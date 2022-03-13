@@ -70,8 +70,6 @@ func main() {
 	db.Find(&pairList)
 
 	favPairList := pairList[:3]
-	var users []models.User
-	db.Find(&users)
 	public.POST("/login", func(c *gin.Context) {
 		var userLogin schemas.UserLogin
 		fmt.Printf("userLogin: %+v\n", userLogin)
@@ -95,37 +93,33 @@ func main() {
 	users_route := private.Group("/users")
 	{
 		users_route.GET("/current", func(c *gin.Context) {
-			var authHeader schemas.AuthHeader
-			err := c.BindHeader(&authHeader)
-			if err != nil {
-				c.JSON(http.StatusForbidden, gin.H{"detail": "No Authorization header"})
-				return
-			}
 			user, exists := c.Get("user")
-			if exists {
-				c.JSON(http.StatusOK, gin.H{"user": user})
+			if !exists {
+				c.JSON(http.StatusNotFound, gin.H{"detail": "User not found"})
 				return
 			}
-			c.JSON(http.StatusUnauthorized, gin.H{"detail": "Invalid token"})
+			c.JSON(http.StatusOK, user)
 		})
 		users_route.GET("/:id", func(c *gin.Context) {
 			id, _ := strconv.Atoi(c.Param("id"))
-			for _, user := range users {
-				if user.ID == uint(id) {
-					c.JSON(http.StatusOK, user)
-					return
-				}
-			}
-			c.JSON(http.StatusNotFound, gin.H{"detail": fmt.Sprintf("User with id %d not found", id)})
+			var user models.User
+			db.Where("id = ?", id).First(&user)
+			c.JSON(http.StatusOK, user)
+			// TODO: handle c.JSON(http.StatusNotFound, gin.H{"detail": fmt.Sprintf("User with id %d not found", id)})
 		})
 	}
 	pair_list_route := private.Group("/pair-list")
 	{
 		pair_list_route.GET("/", func(c *gin.Context) {
+			var pairList []models.Pair
+			db.Find(&pairList)
 			c.JSON(http.StatusOK, pairList)
 		})
 
 		pair_list_route.GET("/fav", func(c *gin.Context) {
+			user := c.MustGet("user").(models.User)
+			var favPairList []models.FavPair
+			db.Joins("JOIN users ON users.id = user_id").Joins("JOIN pairs ON pairs.id = pair_id").Where("user_id = ?", user.ID).Find(&favPairList)
 			c.JSON(http.StatusOK, favPairList)
 		})
 		pair_list_route.POST("/fav", func(c *gin.Context) {
