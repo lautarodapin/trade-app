@@ -115,28 +115,46 @@ func main() {
 			db.Find(&pairList)
 			c.JSON(http.StatusOK, pairList)
 		})
-
 		pair_list_route.GET("/fav", func(c *gin.Context) {
 			user := c.MustGet("user").(models.User)
 			var favPairList []models.FavPair
-			db.Joins("JOIN users ON users.id = user_id").Joins("JOIN pairs ON pairs.id = pair_id").Where("user_id = ?", user.ID).Find(&favPairList)
+			db.
+				Joins("JOIN users ON users.id = user_id").
+				Joins("JOIN pairs ON pairs.id = pair_id").
+				Where("user_id = ?", user.ID).
+				Find(&favPairList)
 			c.JSON(http.StatusOK, favPairList)
 		})
 		pair_list_route.POST("/fav", func(c *gin.Context) {
 			var jsonData schemas.Symbol
+			user := c.MustGet("user").(models.User)
 			c.BindJSON(&jsonData)
 			symbol := jsonData.Symbol
-			for _, favPair := range favPairList {
-				if favPair.Symbol == symbol {
-					c.JSON(http.StatusConflict, gin.H{"detail": "Symbol already exists"})
-					return
-				}
+			var exists int64
+			db.
+				Model(&models.FavPair{}).
+				Joins("JOIN users ON users.id = user_id").
+				Joins("JOIN pairs ON pairs.id = pair_id").
+				Where("pairs.symbol = ?", symbol).
+				Where("user_id = ?", user.ID).
+				Count(&exists)
+			if exists > 0 {
+				c.JSON(http.StatusBadRequest, gin.H{"detail": fmt.Sprintf("%s already exists", symbol)})
+				return
 			}
-			// favPairList = append(favPairList, symbol)
-			if len(favPairList) > 3 {
-				favPairList = favPairList[1:]
+			var count int64
+			db.
+				Model(&models.FavPair{}).
+				Where("user_id = ?", user.ID).
+				Count(&count)
+			if count >= 3 {
+				c.JSON(http.StatusBadRequest, gin.H{"detail": "You can't add more than 3 symbols"})
+				return
 			}
-			c.JSON(http.StatusCreated, favPairList)
+			var pair models.Pair
+			db.Where("symbol = ?", symbol).First(&pair)
+			db.Create(&models.FavPair{UserID: user.ID, PairID: pair.ID})
+			c.JSON(http.StatusCreated, gin.H{"detail": fmt.Sprintf("%s added to fav", symbol)})
 		})
 		pair_list_route.DELETE("/fav/:index", func(c *gin.Context) {
 			index, _ := strconv.Atoi(c.Param("index"))
