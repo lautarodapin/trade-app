@@ -57,3 +57,25 @@ func makeTrade(buys []TradeResultSql, sale *models.Trade) []TradeResultSql {
 	}
 	return buys
 }
+
+func makeSale(c *gin.Context, db *gorm.DB, symbol string, amount float64) models.Trade {
+	user := c.MustGet("user").(models.User)
+	symbolRequest := getPairPrice(symbol)
+	price, _ := strconv.ParseFloat(symbolRequest.Price, 64)
+	quantity := amount / price
+
+	buys, _ := getBuys(db, user, quantity)
+
+	sale := models.Trade{
+		UserID:   user.ID,
+		Type:     models.SELL,
+		Quantity: quantity,
+		Price:    price,
+		Earns:    0,
+	}
+
+	makeTrade(buys, &sale)
+	updateBuys(db, buys)
+
+	return sale
+}
