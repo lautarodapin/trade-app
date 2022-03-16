@@ -38,3 +38,22 @@ func makeBuy(db *gorm.DB, user models.User, price float64, quantity float64) mod
 	db.Create(&trade)
 	return trade
 }
+func makeTrade(buys []TradeResultSql, sale *models.Trade) []TradeResultSql {
+	quantity := sale.Quantity
+	for i, buy := range buys {
+		if quantity == 0 || buys[i].Quantity == 0 {
+			continue
+		}
+		diff := buys[i].Quantity - quantity
+		if diff < 0 {
+			sale.Earns += (quantity - math.Abs(diff)) * (sale.Price - buy.Price)
+			quantity = math.Abs(diff)
+			buys[i].Quantity = 0
+		} else {
+			sale.Earns += quantity * (sale.Price - buy.Price)
+			quantity = 0
+			buys[i].Quantity = diff
+		}
+	}
+	return buys
+}
