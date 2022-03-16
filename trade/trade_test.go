@@ -27,19 +27,21 @@ func TestMakeTrade(t *testing.T) {
 	}
 
 	t.Run("Buy 12 at 100", func(t *testing.T) {
-		trade := makeBuy(db, user, 100, 12)
+		trade := createBuyTrade(db, user, 100, 12)
 		if trade.ID == 0 {
 			t.Fatal("trade not created")
 		}
 	})
+
 	t.Run("Buy 17 at 99", func(t *testing.T) {
-		trade := makeBuy(db, user, 99, 17)
+		trade := createBuyTrade(db, user, 99, 17)
 		if trade.ID == 0 {
 			t.Fatal("trade not created")
 		}
 	})
+
 	t.Run("Buy 3 at 103", func(t *testing.T) {
-		trade := makeBuy(db, user, 103, 3)
+		trade := createBuyTrade(db, user, 103, 3)
 		if trade.ID == 0 {
 			t.Fatal("trade not created")
 		}
@@ -61,6 +63,7 @@ func TestMakeTrade(t *testing.T) {
 			t.Errorf("Expected 3192, got %f", total)
 		}
 	})
+
 	t.Run("Sell 9 at 101 make trade", func(t *testing.T) {
 		sale := models.Trade{
 			Type:     models.SELL,
@@ -70,15 +73,16 @@ func TestMakeTrade(t *testing.T) {
 			UserID:   user.ID,
 		}
 
-		buys, _ := getBuys(db, user, sale.Quantity)
+		buys, _ := getBuysUntilQuantity(db, user, sale.Quantity)
 		buys = makeTrade(buys, &sale)
-		updateBuys(db, buys)
+		updateBuysQuantityTrades(db, buys)
 
 		db.Create(&sale)
 		if sale.Earns != 9*(sale.Price-100) {
 			t.Errorf("Expected 9*(102-100) = %f, got %f", 9*(sale.Price-100), sale.Earns)
 		}
 	})
+
 	t.Run("Total 23 at cost 2292", func(t *testing.T) {
 		var quantity, total float64
 		db.Raw(`
@@ -95,6 +99,7 @@ func TestMakeTrade(t *testing.T) {
 			t.Errorf("Expected 2292, got %f", total)
 		}
 	})
+
 	t.Run("Sell 4 at 105 make trade", func(t *testing.T) {
 		sale := models.Trade{
 			Type:     models.SELL,
@@ -103,15 +108,16 @@ func TestMakeTrade(t *testing.T) {
 			Earns:    0,
 			UserID:   user.ID,
 		}
-		buys, _ := getBuys(db, user, sale.Quantity)
+		buys, _ := getBuysUntilQuantity(db, user, sale.Quantity)
 		buys = makeTrade(buys, &sale)
-		updateBuys(db, buys)
+		updateBuysQuantityTrades(db, buys)
 
 		db.Create(&sale)
 		if sale.Earns != 21 {
 			t.Errorf("Expected 21, got %f", sale.Earns)
 		}
 	})
+
 	t.Run("Total 19 at cost 1893", func(t *testing.T) {
 		var quantity, total float64
 		db.Raw(`
@@ -128,6 +134,7 @@ func TestMakeTrade(t *testing.T) {
 			t.Errorf("Expected 1893, got %f", total)
 		}
 	})
+
 	t.Run("Get unrealized P L with market close at 99", func(t *testing.T) {
 		unrealizedPL := getUnrealizedPL(db, user, float64(99))
 		fmt.Println(unrealizedPL)
@@ -135,6 +142,7 @@ func TestMakeTrade(t *testing.T) {
 			t.Errorf("Expected -12, got %f", unrealizedPL)
 		}
 	})
+
 	t.Run("Get cumulative realized P L", func(t *testing.T) {
 		cumulativePL := getCumulativePL(db, user)
 		fmt.Println(cumulativePL)
@@ -142,6 +150,7 @@ func TestMakeTrade(t *testing.T) {
 			t.Errorf("Expected 30, got %f", cumulativePL)
 		}
 	})
+
 	t.Run("Get total earns", func(t *testing.T) {
 		unrealizedPL := getUnrealizedPL(db, user, float64(99))
 		cumulativePL := getCumulativePL(db, user)
@@ -153,7 +162,7 @@ func TestMakeTrade(t *testing.T) {
 	})
 
 	t.Run("Get pair price for BTCUSDT", func(t *testing.T) {
-		symbolRequest := getPairPrice("BTCUSDT")
+		symbolRequest := getSymbolPrice("BTCUSDT")
 		if symbolRequest == (SymbolRequest{}) {
 			t.Errorf("Expected not empty, got %v", symbolRequest)
 		}

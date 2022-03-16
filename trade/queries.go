@@ -12,7 +12,8 @@ type TradeResultSql struct {
 	Acc float64
 }
 
-func getBuys(db *gorm.DB, user models.User, quantity float64) ([]TradeResultSql, error) {
+// Gets all buy trades order by First in first out, until reach the desired quantity
+func getBuysUntilQuantity(db *gorm.DB, user models.User, quantity float64) ([]TradeResultSql, error) {
 	var buys []TradeResultSql
 	err := db.Raw(`
 		SELECT *
@@ -32,7 +33,8 @@ func getBuys(db *gorm.DB, user models.User, quantity float64) ([]TradeResultSql,
 	return buys, err
 }
 
-func updateBuys(db *gorm.DB, buys []TradeResultSql) {
+// Update all the quantities of the buy trades
+func updateBuysQuantityTrades(db *gorm.DB, buys []TradeResultSql) {
 	for _, buy := range buys {
 		db.Raw(`
 			UPDATE trades
@@ -43,6 +45,7 @@ func updateBuys(db *gorm.DB, buys []TradeResultSql) {
 	}
 }
 
+// Calculates the unrealized PL of the user
 func getUnrealizedPL(db *gorm.DB, user models.User, closePrice float64) float64 {
 	var value float64
 	var costHoldings float64
@@ -60,6 +63,7 @@ func getUnrealizedPL(db *gorm.DB, user models.User, closePrice float64) float64 
 	return value - costHoldings
 }
 
+// Calculates de cumulative PL of the user
 func getCumulativePL(db *gorm.DB, user models.User) float64 {
 	var value float64
 	query := `

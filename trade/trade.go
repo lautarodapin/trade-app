@@ -17,7 +17,8 @@ type SymbolRequest struct {
 	Price  string `json:"price"`
 }
 
-func getPairPrice(symbol string) SymbolRequest {
+// Gets the price of a symbol from binance
+func getSymbolPrice(symbol string) SymbolRequest {
 	resp, err := http.Get(fmt.Sprintf("https://api.binance.com/api/v3/ticker/price?symbol=%s", symbol))
 	if err != nil {
 		return SymbolRequest{}
@@ -28,7 +29,8 @@ func getPairPrice(symbol string) SymbolRequest {
 	return symbolRequest
 }
 
-func makeBuy(db *gorm.DB, user models.User, price float64, quantity float64) models.Trade {
+// Creates a buy trade for certain user, with some price and quantity
+func createBuyTrade(db *gorm.DB, user models.User, price float64, quantity float64) models.Trade {
 	trade := models.Trade{
 		UserID:   user.ID,
 		Type:     models.BUY,
@@ -38,6 +40,8 @@ func makeBuy(db *gorm.DB, user models.User, price float64, quantity float64) mod
 	db.Create(&trade)
 	return trade
 }
+
+// Loops through all the buys trades until reach the desired quantity and calculates the earns of the sale
 func makeTrade(buys []TradeResultSql, sale *models.Trade) []TradeResultSql {
 	quantity := sale.Quantity
 	for i, buy := range buys {
@@ -58,13 +62,14 @@ func makeTrade(buys []TradeResultSql, sale *models.Trade) []TradeResultSql {
 	return buys
 }
 
-func makeSale(c *gin.Context, db *gorm.DB, symbol string, amount float64) models.Trade {
+// Creates a sale based on the symbol and the amount requested
+func makeSaleTrade(c *gin.Context, db *gorm.DB, symbol string, amount float64) models.Trade {
 	user := c.MustGet("user").(models.User)
-	symbolRequest := getPairPrice(symbol)
+	symbolRequest := getSymbolPrice(symbol)
 	price, _ := strconv.ParseFloat(symbolRequest.Price, 64)
 	quantity := amount / price
 
-	buys, _ := getBuys(db, user, quantity)
+	buys, _ := getBuysUntilQuantity(db, user, quantity)
 
 	sale := models.Trade{
 		UserID:   user.ID,
@@ -75,7 +80,9 @@ func makeSale(c *gin.Context, db *gorm.DB, symbol string, amount float64) models
 	}
 
 	makeTrade(buys, &sale)
-	updateBuys(db, buys)
+	updateBuysQuantityTrades(db, buys)
+
+	db.Create(&sale)
 
 	return sale
 }
