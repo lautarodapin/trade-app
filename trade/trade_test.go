@@ -162,7 +162,7 @@ func TestMakeTrade(t *testing.T) {
 	})
 
 	t.Run("Get pair price for BTCUSDT", func(t *testing.T) {
-		symbolRequest := getSymbolPrice("BTCUSDT")
+		symbolRequest, _ := getSymbolPrice("BTCUSDT")
 		if symbolRequest == (SymbolRequest{}) {
 			t.Errorf("Expected not empty, got %v", symbolRequest)
 		}

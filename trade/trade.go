@@ -18,15 +18,15 @@ type SymbolRequest struct {
 }
 
 // Gets the price of a symbol from binance
-func getSymbolPrice(symbol string) SymbolRequest {
+func getSymbolPrice(symbol string) (SymbolRequest, error) {
 	resp, err := http.Get(fmt.Sprintf("https://api.binance.com/api/v3/ticker/price?symbol=%s", symbol))
 	if err != nil {
-		return SymbolRequest{}
+		return SymbolRequest{}, err
 	}
 	defer resp.Body.Close()
 	var symbolRequest SymbolRequest
 	json.NewDecoder(resp.Body).Decode(&symbolRequest)
-	return symbolRequest
+	return symbolRequest, err
 }
 
 // Creates a buy trade for certain user, with some price and quantity
@@ -65,7 +65,7 @@ func makeTrade(buys []TradeResultSql, sale *models.Trade) []TradeResultSql {
 // Creates a sale based on the symbol and the amount requested
 func makeSaleTrade(c *gin.Context, db *gorm.DB, symbol string, amount float64) models.Trade {
 	user := c.MustGet("user").(models.User)
-	symbolRequest := getSymbolPrice(symbol)
+	symbolRequest, _ := getSymbolPrice(symbol)
 	price, _ := strconv.ParseFloat(symbolRequest.Price, 64)
 	quantity := amount / price
 
