@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"trade-app/models"
+	"trade-app/schemas"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -63,8 +64,7 @@ func makeTrade(buys []TradeResultSql, sale *models.Trade) []TradeResultSql {
 }
 
 // Creates a sale based on the symbol and the amount requested
-func makeSaleTrade(c *gin.Context, db *gorm.DB, symbol string, amount float64) models.Trade {
-	user := c.MustGet("user").(models.User)
+func makeSaleTrade(db *gorm.DB, user models.User, symbol string, amount float64) models.Trade {
 	symbolRequest, _ := getSymbolPrice(symbol)
 	price, _ := strconv.ParseFloat(symbolRequest.Price, 64)
 	quantity := amount / price
@@ -85,4 +85,61 @@ func makeSaleTrade(c *gin.Context, db *gorm.DB, symbol string, amount float64) m
 	db.Create(&sale)
 
 	return sale
+}
+
+func MakeTradeBuyHandler(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var postData schemas.BuyTradePost
+		user := c.MustGet("user").(models.User)
+		c.BindJSON(&postData)
+		symbol := postData.Symbol
+		amount := postData.Amount
+		symbolRequest, _ := getSymbolPrice(symbol)
+		price, _ := strconv.ParseFloat(symbolRequest.Price, 64)
+		quantity := amount / price
+		buy := createBuyTrade(db, user, price, quantity)
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "success",
+			"message": "Buy trade created",
+			"data":    buy,
+		})
+	}
+}
+
+func MakeTradeSaleHandler(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var postData schemas.BuyTradePost
+		user := c.MustGet("user").(models.User)
+		c.BindJSON(&postData)
+		symbol := postData.Symbol
+		amount := postData.Amount
+		sale := makeSaleTrade(db, user, symbol, amount)
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "success",
+			"message": "Sale trade created",
+			"data":    sale,
+		})
+
+	}
+}
+
+func PnlHandler(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := c.MustGet("user").(models.User)
+		symbol := c.Param("symbol")
+		symbolRequest, _ := getSymbolPrice(symbol)
+		price, _ := strconv.ParseFloat(symbolRequest.Price, 64)
+		unrealizedPL := getUnrealizedPL(db, user, price)
+		cumulativePL := getCumulativePL(db, user)
+		netPNL := getNetPNL(unrealizedPL, cumulativePL)
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "success",
+			"message": "PnL",
+			"data": schemas.PnlResponse{
+				UnrealizedPL: unrealizedPL,
+				CumulativePL: cumulativePL,
+				NetPNL:       netPNL,
+			},
+		})
+	}
 }

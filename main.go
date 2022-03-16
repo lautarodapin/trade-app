@@ -189,6 +189,10 @@ func main() {
 			}
 			c.JSON(http.StatusOK, symbolRequestList)
 		})
+		trades_routes := private.Group("trades")
+		trades_routes.POST("/buy", trade.MakeTradeBuyHandler(db))
+		trades_routes.POST("/sale", trade.MakeTradeSaleHandler(db))
+		trades_routes.GET("/:symbol", trade.PnlHandler(db))
 	}
 	r.Run()
 }

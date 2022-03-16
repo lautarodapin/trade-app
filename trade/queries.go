@@ -77,3 +77,7 @@ func getCumulativePL(db *gorm.DB, user models.User) float64 {
 	}).Row().Scan(&value)
 	return value
 }
+
+func getNetPNL(unrealized float64, cumulative float64) float64 {
+	return cumulative + unrealized
+}
