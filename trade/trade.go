@@ -27,3 +27,14 @@ func getPairPrice(symbol string) SymbolRequest {
 	json.NewDecoder(resp.Body).Decode(&symbolRequest)
 	return symbolRequest
 }
+
+func makeBuy(db *gorm.DB, user models.User, price float64, quantity float64) models.Trade {
+	trade := models.Trade{
+		UserID:   user.ID,
+		Type:     models.BUY,
+		Quantity: quantity,
+		Price:    price,
+	}
+	db.Create(&trade)
+	return trade
+}
