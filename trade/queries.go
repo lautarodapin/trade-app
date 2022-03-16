@@ -23,7 +23,7 @@ func getBuysUntilQuantity(db *gorm.DB, user models.User, quantity float64) ([]Tr
 			WHERE type = @type AND user_id = @userId
 		) as subquery
 		JOIN trades as t ON t.id = subquery.id
-		WHERE t.type = @type AND t.user_id = @userId`,
+		WHERE t.type = @type AND t.user_id = @userId`, // FIXME:  AND subquery.acc < @quantity for some reason it doesn't work
 		map[string]interface{}{
 			"userId":   user.ID,
 			"type":     models.BUY,

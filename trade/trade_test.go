@@ -78,8 +78,8 @@ func TestMakeTrade(t *testing.T) {
 		updateBuysQuantityTrades(db, buys)
 
 		db.Create(&sale)
-		if sale.Earns != 9*(sale.Price-100) {
-			t.Errorf("Expected 9*(102-100) = %f, got %f", 9*(sale.Price-100), sale.Earns)
+		if sale.Earns != 9 {
+			t.Errorf("Expected  9, got %f", sale.Earns)
 		}
 	})
 
