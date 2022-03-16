@@ -8,6 +8,7 @@ import (
 	"strings"
 	"trade-app/models"
 	"trade-app/schemas"
+	"trade-app/trade"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/sqlite"
@@ -41,6 +42,7 @@ func CORSMiddleware(db *gorm.DB) gin.HandlerFunc {
 		c.Next()
 	}
 }
+
 func main() {
 
 	db, _ := gorm.Open(sqlite.Open("gorm.sqlite"), &gorm.Config{})
@@ -166,7 +168,7 @@ func main() {
 			c.JSON(http.StatusOK, gin.H{"detail": fmt.Sprintf("%d deleted from fav", favPair.ID)})
 		})
 		pair_list_route.GET("/fav/prices", func(c *gin.Context) {
-			var symbolRequestList []schemas.SymbolRequest
+			var symbolRequestList []trade.SymbolRequest
 			user := c.MustGet("user").(models.User)
 			var favPairList []models.Pair
 			db.
@@ -181,7 +183,7 @@ func main() {
 					return
 				}
 				defer resp.Body.Close()
-				var symbolRequest schemas.SymbolRequest
+				var symbolRequest trade.SymbolRequest
 				json.NewDecoder(resp.Body).Decode(&symbolRequest)
 				symbolRequestList = append(symbolRequestList, symbolRequest)
 			}
