@@ -12,8 +12,3 @@ type UserLogin struct {
 type Symbol struct {
 	Symbol string `json:"symbol"`
 }
-
-type SymbolRequest struct {
-	Symbol string `json:"symbol"`
-	Price  string `json:"price"`
-}
