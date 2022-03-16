@@ -26,10 +26,25 @@ type FavPair struct {
 	PairID uint `json:"pairId" gorm:"not null"`
 }
 
+const (
+	BUY  = 1
+	SELL = 2
+)
+
+type Trade struct {
+	gorm.Model
+	UserID   uint    `json:"userId" gorm:"not null"`
+	Type     uint8   `json:"type" gorm:"not null;default:1"`
+	Quantity float64 `json:"quantity" gorm:"not null"`
+	Price    float64 `json:"price" gorm:"not null"`
+	Earns    float64 `json:"earns"`
+}
+
 func AutoMigrate(db *gorm.DB) {
 	db.AutoMigrate(&User{})
 	db.AutoMigrate(&Pair{})
 	db.AutoMigrate(&FavPair{})
+	db.AutoMigrate(&Trade{})
 }
 
 func InitUsers(db *gorm.DB) {
