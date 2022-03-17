@@ -1,0 +1,48 @@
+<script lang="ts">
+    import { onMount } from "svelte";
+    import { favSymbols, fetchFavSymbols, token } from "../stores/index";
+    import type { ApiResponse } from "../types";
+
+    let symbols: { id: number; symbol: string }[] = [];
+
+    onMount(async () => {
+        const response = await fetch("http://localhost:8080/pair-list/", {
+            headers: {
+                Authorization: `Bearer ${$token}`,
+            },
+        });
+        const { data, status, message }: ApiResponse = await response.json();
+        symbols = data;
+    });
+    const addToFav = async (symbol: string) => {
+        const response = await fetch("http://localhost:8080/pair-list/fav", {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${$token}`,
+            },
+            body: JSON.stringify({ symbol }),
+        });
+        const { status, message }: ApiResponse = await response.json();
+        if (status === "success") {
+            alert(message);
+            fetchFavSymbols();
+        } else {
+            alert(message);
+        }
+    };
+</script>
+
+<div>
+    <ul>
+        {#each symbols as symbol}
+            <li>
+                {symbol.symbol}
+                {#if !$favSymbols.some((favSymbol) => favSymbol.pair.symbol === symbol.symbol)}
+                    <button on:click={() => addToFav(symbol.symbol)}
+                        >Add to fav</button
+                    >
+                {/if}
+            </li>
+        {/each}
+    </ul>
+</div>
