@@ -143,3 +143,15 @@ func PnlHandler(db *gorm.DB) gin.HandlerFunc {
 		})
 	}
 }
+
+func ListTradesHandler(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user := c.MustGet("user").(models.User)
+		trades := getTrades(db, user)
+		c.JSON(http.StatusOK, schemas.Response{
+			Status:  "success",
+			Message: "Trades",
+			Data:    trades,
+		})
+	}
+}

@@ -78,6 +78,7 @@ func main() {
 	}
 	trades_routes := private.Group("trades")
 	{
+		trades_routes.GET("/", trade.ListTradesHandler(db))
 		trades_routes.POST("/buy", trade.MakeTradeBuyHandler(db))
 		trades_routes.POST("/sale", trade.MakeTradeSaleHandler(db))
 		trades_routes.GET("/:symbol", trade.PnlHandler(db))

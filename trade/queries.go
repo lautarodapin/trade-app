@@ -81,3 +81,9 @@ func getCumulativePL(db *gorm.DB, user models.User) float64 {
 func getNetPNL(unrealized float64, cumulative float64) float64 {
 	return cumulative + unrealized
 }
+
+func getTrades(db *gorm.DB, user models.User) []models.Trade {
+	var trades []models.Trade
+	db.Where("user_id = ?", user.ID).Find(&trades)
+	return trades
+}
