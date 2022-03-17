@@ -136,22 +136,9 @@ func main() {
 		})
 		pair_list_route.GET("/fav", func(c *gin.Context) {
 			user := c.MustGet("user").(models.User)
-			var favPairList []map[string]interface{}
-			rows, _ := db.Debug().
-				Model(&models.FavPair{}).
-				Joins("JOIN users ON users.id = user_id").
-				Joins("JOIN pairs ON pairs.id = pair_id").
-				Where("user_id = ?", user.ID).
-				Rows()
-			for rows.Next() {
-				var pair models.Pair
-				var user models.User
-				db.Debug().ScanRows(rows, &user)
-				db.Debug().ScanRows(rows, &pair)
-				fmt.Println("user", user)
-				fmt.Println("pair", pair)
-				favPairList = append(favPairList, gin.H{"user": user, "pair": pair})
-			}
+			var favPairList []models.FavPair
+			db.Debug().Preload("User").Preload("Pair").Where("user_id = ?", user.ID).Find(&favPairList)
+
 			fmt.Println("favPairList: ", favPairList)
 			c.JSON(http.StatusOK, schemas.Response{Status: "success", Data: favPairList})
 		})

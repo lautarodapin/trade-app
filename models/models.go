@@ -6,24 +6,26 @@ import (
 
 type User struct {
 	gorm.Model
-	FirstName string    `json:"firstName"`
-	LastName  string    `json:"lastName"`
+	FirstName string    `json:"first_name"`
+	LastName  string    `json:"last_name"`
 	Email     string    `json:"email" gorm:"unique;not null"`
 	Token     string    `json:"token"`
 	Password  string    `json:"password"`
-	FavPairs  []FavPair `json:"favPairs"`
+	FavPairs  []FavPair `json:"fav_pairs"`
 }
 
 type Pair struct {
 	gorm.Model
 	Symbol   string    `json:"symbol" gorm:"unique;not null"`
-	FavPairs []FavPair `json:"favPairs"`
+	FavPairs []FavPair `json:"fav_pairs"`
 }
 
 type FavPair struct {
 	gorm.Model
-	UserID uint `json:"userId" gorm:"not null"`
-	PairID uint `json:"pairId" gorm:"not null"`
+	UserID uint `json:"user_id" gorm:"not null"`
+	User   User `json:"user" gorm:"foreignkey:UserID"`
+	PairID uint `json:"pair_id" gorm:"not null"`
+	Pair   Pair `json:"pair" gorm:"foreignkey:PairID"`
 }
 
 const (
