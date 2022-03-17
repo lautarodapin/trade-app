@@ -5,6 +5,7 @@
     import { token, user } from "./stores/index";
     import TokenList from "./components/TokenList.svelte";
     import FavTokens from "./components/FavTokens.svelte";
+    import TradesTable from "./components/TradesTable.svelte";
 
     token.subscribe(async (token) => {
         if (token) {
@@ -32,6 +33,9 @@
         </div>
         <div class="border border-blue-700">
             <FavTokens />
+        </div>
+        <div class="border border-green-600">
+            <TradesTable />
         </div>
     {:else}
         <Login />
