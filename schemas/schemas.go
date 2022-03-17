@@ -23,3 +23,9 @@ type PnlResponse struct {
 	CumulativePL float64 `json:"cumulative_pl"`
 	NetPNL       float64 `json:"net_pnl"`
 }
+
+type Response struct {
+	Status  string      `json:"status"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
+}

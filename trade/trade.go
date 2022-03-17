@@ -98,10 +98,10 @@ func MakeTradeBuyHandler(db *gorm.DB) gin.HandlerFunc {
 		price, _ := strconv.ParseFloat(symbolRequest.Price, 64)
 		quantity := amount / price
 		buy := createBuyTrade(db, user, price, quantity)
-		c.JSON(http.StatusOK, gin.H{
-			"status":  "success",
-			"message": "Buy trade created",
-			"data":    buy,
+		c.JSON(http.StatusOK, schemas.Response{
+			Status:  "success",
+			Message: "Buy trade created",
+			Data:    buy,
 		})
 	}
 }
@@ -114,10 +114,10 @@ func MakeTradeSaleHandler(db *gorm.DB) gin.HandlerFunc {
 		symbol := postData.Symbol
 		amount := postData.Amount
 		sale := makeSaleTrade(db, user, symbol, amount)
-		c.JSON(http.StatusOK, gin.H{
-			"status":  "success",
-			"message": "Sale trade created",
-			"data":    sale,
+		c.JSON(http.StatusOK, schemas.Response{
+			Status:  "success",
+			Message: "Sale trade created",
+			Data:    sale,
 		})
 
 	}
@@ -132,10 +132,10 @@ func PnlHandler(db *gorm.DB) gin.HandlerFunc {
 		unrealizedPL := getUnrealizedPL(db, user, price)
 		cumulativePL := getCumulativePL(db, user)
 		netPNL := getNetPNL(unrealizedPL, cumulativePL)
-		c.JSON(http.StatusOK, gin.H{
-			"status":  "success",
-			"message": "PnL",
-			"data": schemas.PnlResponse{
+		c.JSON(http.StatusOK, schemas.Response{
+			Status:  "success",
+			Message: "PnL",
+			Data: schemas.PnlResponse{
 				UnrealizedPL: unrealizedPL,
 				CumulativePL: cumulativePL,
 				NetPNL:       netPNL,
