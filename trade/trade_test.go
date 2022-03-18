@@ -18,6 +18,7 @@ func TestMakeTrade(t *testing.T) {
 
 	db.AutoMigrate(&models.Trade{})
 	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.Pair{})
 	user := models.User{
 		Email: "test@test.com",
 	}
@@ -25,35 +26,39 @@ func TestMakeTrade(t *testing.T) {
 	if user.ID == 0 {
 		t.Fatal("user not created")
 	}
+	const SYMBOL = "FAKESYMBOL"
+	db.Create(&models.Pair{Symbol: SYMBOL})
 
 	t.Run("Buy 12 at 100", func(t *testing.T) {
-		trade := createBuyTrade(db, user, 100, 12)
+		trade := createBuyTrade(db, user, 100, 12, SYMBOL)
 		if trade.ID == 0 {
 			t.Fatal("trade not created")
 		}
 	})
 
 	t.Run("Buy 17 at 99", func(t *testing.T) {
-		trade := createBuyTrade(db, user, 99, 17)
+		trade := createBuyTrade(db, user, 99, 17, SYMBOL)
 		if trade.ID == 0 {
 			t.Fatal("trade not created")
 		}
 	})
 
 	t.Run("Buy 3 at 103", func(t *testing.T) {
-		trade := createBuyTrade(db, user, 103, 3)
+		trade := createBuyTrade(db, user, 103, 3, SYMBOL)
 		if trade.ID == 0 {
 			t.Fatal("trade not created")
 		}
 	})
+	createBuyTrade(db, user, 103, 3, "OTHER")
 
 	t.Run("Total 32 at cost 3192", func(t *testing.T) {
 		var quantity, total float64
 		db.Raw(`
 			SELECT SUM(quantity) as quantity, SUM(price*quantity) as total
 			FROM trades
-			WHERE user_id = @userId AND type = @type
-		`, map[string]interface{}{"userId": user.ID, "type": models.BUY}).
+			JOIN pairs ON pairs.id = trades.pair_id
+			WHERE user_id = @userId AND type = @type AND pairs.symbol = @symbol
+		`, map[string]interface{}{"userId": user.ID, "type": models.BUY, "symbol": SYMBOL}).
 			Row().Scan(&quantity, &total)
 
 		if quantity != 32 {
@@ -88,8 +93,9 @@ func TestMakeTrade(t *testing.T) {
 		db.Raw(`
 			SELECT SUM(quantity) as quantity, SUM(price*quantity) as total
 			FROM trades
-			WHERE user_id = @userId AND type = @type
-		`, map[string]interface{}{"userId": user.ID, "type": models.BUY}).
+			JOIN pairs ON pairs.id = trades.pair_id
+			WHERE user_id = @userId AND type = @type AND pairs.symbol = @symbol
+		`, map[string]interface{}{"userId": user.ID, "type": models.BUY, "symbol": SYMBOL}).
 			Row().Scan(&quantity, &total)
 
 		if quantity != 23 {
@@ -123,8 +129,9 @@ func TestMakeTrade(t *testing.T) {
 		db.Raw(`
 			SELECT SUM(quantity) as quantity, SUM(price*quantity) as total
 			FROM trades
-			WHERE user_id = @userId AND type = @type
-		`, map[string]interface{}{"userId": user.ID, "type": models.BUY}).
+			JOIN pairs ON pairs.id = trades.pair_id
+			WHERE user_id = @userId AND type = @type AND pairs.symbol = @symbol
+		`, map[string]interface{}{"userId": user.ID, "type": models.BUY, "symbol": SYMBOL}).
 			Row().Scan(&quantity, &total)
 
 		if quantity != 19 {
@@ -136,7 +143,7 @@ func TestMakeTrade(t *testing.T) {
 	})
 
 	t.Run("Get unrealized P L with market close at 99", func(t *testing.T) {
-		unrealizedPL := getUnrealizedPL(db, user, float64(99))
+		unrealizedPL := getUnrealizedPL(db, user, float64(99), SYMBOL)
 		fmt.Println(unrealizedPL)
 		if unrealizedPL != -12 {
 			t.Errorf("Expected -12, got %f", unrealizedPL)
@@ -152,7 +159,7 @@ func TestMakeTrade(t *testing.T) {
 	})
 
 	t.Run("Get total earns", func(t *testing.T) {
-		unrealizedPL := getUnrealizedPL(db, user, float64(99))
+		unrealizedPL := getUnrealizedPL(db, user, float64(99), SYMBOL)
 		cumulativePL := getCumulativePL(db, user)
 		totalEarns := cumulativePL + unrealizedPL
 		fmt.Println(totalEarns)

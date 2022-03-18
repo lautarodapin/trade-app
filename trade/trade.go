@@ -31,12 +31,15 @@ func getSymbolPrice(symbol string) (SymbolRequest, error) {
 }
 
 // Creates a buy trade for certain user, with some price and quantity
-func createBuyTrade(db *gorm.DB, user models.User, price float64, quantity float64) models.Trade {
+func createBuyTrade(db *gorm.DB, user models.User, price float64, quantity float64, symbol string) models.Trade {
+	var pair models.Pair
+	db.Where("symbol = ?", symbol).First(&pair)
 	trade := models.Trade{
 		UserID:   user.ID,
 		Type:     models.BUY,
 		Quantity: quantity,
 		Price:    price,
+		PairID:   pair.ID,
 	}
 	db.Create(&trade)
 	return trade
@@ -97,7 +100,7 @@ func MakeTradeBuyHandler(db *gorm.DB) gin.HandlerFunc {
 		symbolRequest, _ := getSymbolPrice(symbol)
 		price, _ := strconv.ParseFloat(symbolRequest.Price, 64)
 		quantity := amount / price
-		buy := createBuyTrade(db, user, price, quantity)
+		buy := createBuyTrade(db, user, price, quantity, symbol)
 		c.JSON(http.StatusOK, schemas.Response{
 			Status:  "success",
 			Message: "Buy trade created",
@@ -129,7 +132,7 @@ func PnlHandler(db *gorm.DB) gin.HandlerFunc {
 		symbol := c.Param("symbol")
 		symbolRequest, _ := getSymbolPrice(symbol)
 		price, _ := strconv.ParseFloat(symbolRequest.Price, 64)
-		unrealizedPL := getUnrealizedPL(db, user, price)
+		unrealizedPL := getUnrealizedPL(db, user, price, "")
 		cumulativePL := getCumulativePL(db, user)
 		netPNL := getNetPNL(unrealizedPL, cumulativePL)
 		c.JSON(http.StatusOK, schemas.Response{

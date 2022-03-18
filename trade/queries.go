@@ -46,18 +46,20 @@ func updateBuysQuantityTrades(db *gorm.DB, buys []TradeResultSql) {
 }
 
 // Calculates the unrealized PL of the user
-func getUnrealizedPL(db *gorm.DB, user models.User, closePrice float64) float64 {
+func getUnrealizedPL(db *gorm.DB, user models.User, closePrice float64, symbol string) float64 {
 	var value float64
 	var costHoldings float64
 	query := `
-		SELECT SUM(quantity) * @close_price as value, SUM(quantity * price) as cost_holdings
-		FROM trades
-		WHERE type = @buy AND user_id = @user_id
+		SELECT SUM(t.quantity) * @closePrice as value, SUM(t.quantity * t.price) as cost_holdings
+		FROM trades t
+		JOIN pairs p ON p.id = t.pair_id
+		WHERE t.user_id = @userId AND t.type = @type AND p.symbol = @symbol
 	`
-	db.Debug().Raw(query, map[string]interface{}{
-		"close_price": closePrice,
-		"user_id":     user.ID,
-		"buy":         models.BUY,
+	db.Debug().Model(models.Trade{}).Raw(query, map[string]interface{}{
+		"closePrice": closePrice,
+		"userId":     user.ID,
+		"type":       models.BUY,
+		"symbol":     symbol,
 	}).Row().Scan(&value, &costHoldings)
 	fmt.Printf("value=%+v, costHoldings=%+v\n", value, costHoldings)
 	return value - costHoldings
