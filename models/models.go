@@ -36,6 +36,9 @@ const (
 type Trade struct {
 	gorm.Model
 	UserID   uint    `json:"userId" gorm:"not null"`
+	User     User    `json:"user" gorm:"foreignkey:UserID"`
+	PairID   uint    `json:"pairId" gorm:"not null"`
+	Pair     Pair    `json:"pair" gorm:"foreignkey:PairID"`
 	Type     uint8   `json:"type" gorm:"not null;default:1"`
 	Quantity float64 `json:"quantity" gorm:"not null"`
 	Price    float64 `json:"price" gorm:"not null"`
