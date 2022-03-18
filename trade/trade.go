@@ -130,8 +130,8 @@ func PnlHandler(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user := c.MustGet("user").(models.User)
 		unrealizedPL := calculateUnrealizedPL(db, user)
-		cumulativePL := getCumulativePL(db, user)
-		netPNL := getNetPNL(unrealizedPL, cumulativePL)
+		cumulativePL := calculateCumulativePL(db, user)
+		netPNL := calculateNetPNL(unrealizedPL, cumulativePL)
 		c.JSON(http.StatusOK, schemas.Response{
 			Status:  "success",
 			Message: "PnL",

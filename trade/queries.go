@@ -86,7 +86,7 @@ func calculateUnrealizedPL(db *gorm.DB, user models.User) float64 {
 }
 
 // Calculates de cumulative PL of the user
-func getCumulativePL(db *gorm.DB, user models.User) float64 {
+func calculateCumulativePL(db *gorm.DB, user models.User) float64 {
 	var value float64
 	query := `
 		SELECT SUM(earns) as value
@@ -100,7 +100,7 @@ func getCumulativePL(db *gorm.DB, user models.User) float64 {
 	return value
 }
 
-func getNetPNL(unrealized float64, cumulative float64) float64 {
+func calculateNetPNL(unrealized float64, cumulative float64) float64 {
 	return cumulative + unrealized
 }
 

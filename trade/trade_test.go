@@ -165,7 +165,7 @@ func TestMakeTrade(t *testing.T) {
 	})
 
 	t.Run("Get cumulative realized P L", func(t *testing.T) {
-		cumulativePL := getCumulativePL(db, user)
+		cumulativePL := calculateCumulativePL(db, user)
 		fmt.Println(cumulativePL)
 		if cumulativePL != 30 {
 			t.Errorf("Expected 30, got %f", cumulativePL)
@@ -183,7 +183,7 @@ func TestMakeTrade(t *testing.T) {
 			}
 		}
 		unrealizedPL := values - costHoldings
-		cumulativePL := getCumulativePL(db, user)
+		cumulativePL := calculateCumulativePL(db, user)
 		totalEarns := cumulativePL + unrealizedPL
 		fmt.Println(totalEarns)
 		if totalEarns != 18 {
