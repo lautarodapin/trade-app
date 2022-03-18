@@ -9,4 +9,11 @@ export enum TradeType {
     BUY = 1,
     SELL = 2,
 }
-export type Trade = { ID: number, type: TradeType, quantity: number, price: number, earns: number }
+export type Trade = {
+    ID: number,
+    type: TradeType,
+    quantity: number,
+    price: number,
+    earns: number,
+    pair: Pair,
+}

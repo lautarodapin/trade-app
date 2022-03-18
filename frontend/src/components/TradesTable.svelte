@@ -12,6 +12,7 @@
     <table class="m-4">
         <tr>
             <td class="px-4">ID</td>
+            <td class="px-4">Symbol</td>
             <td class="px-4">Type</td>
             <td class="px-4">Quantity</td>
             <td class="px-4">Price</td>
@@ -21,6 +22,7 @@
             {#each $trades as trade}
                 <tr>
                     <td class="text-center my-2">{trade.ID}</td>
+                    <td class="text-center my-2">{trade.pair.symbol}</td>
                     <td class="text-center my-2"
                         >{trade.type === TradeType.BUY ? "Buy" : "Sell"}</td
                     >
