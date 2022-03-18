@@ -106,6 +106,6 @@ func calculateNetPNL(unrealized float64, cumulative float64) float64 {
 
 func getTrades(db *gorm.DB, user models.User) []models.Trade {
 	var trades []models.Trade
-	db.Where("user_id = ?", user.ID).Find(&trades)
+	db.Debug().Preload("Pair").Where("user_id = ?", user.ID).Find(&trades)
 	return trades
 }
