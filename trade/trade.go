@@ -129,10 +129,7 @@ func MakeTradeSaleHandler(db *gorm.DB) gin.HandlerFunc {
 func PnlHandler(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user := c.MustGet("user").(models.User)
-		symbol := c.Param("symbol")
-		symbolRequest, _ := getSymbolPrice(symbol)
-		price, _ := strconv.ParseFloat(symbolRequest.Price, 64)
-		unrealizedPL := getUnrealizedPL(db, user, price, "")
+		unrealizedPL := calculateUnrealizedPL(db, user)
 		cumulativePL := getCumulativePL(db, user)
 		netPNL := getNetPNL(unrealizedPL, cumulativePL)
 		c.JSON(http.StatusOK, schemas.Response{

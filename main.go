@@ -81,7 +81,7 @@ func main() {
 		trades_routes.GET("/", trade.ListTradesHandler(db))
 		trades_routes.POST("/buy", trade.MakeTradeBuyHandler(db))
 		trades_routes.POST("/sale", trade.MakeTradeSaleHandler(db))
-		trades_routes.GET("/:symbol", trade.PnlHandler(db))
+		trades_routes.GET("/earns", trade.PnlHandler(db))
 	}
 	r.Run()
 }

@@ -69,7 +69,7 @@ func queryUnrealizedPL(db *gorm.DB, user models.User) ([]UnrealizedPLSqlResult, 
 }
 
 // Calculates the unrealized PL of the user
-func getUnrealizedPL(db *gorm.DB, user models.User, closePrice float64, symbol string) float64 {
+func calculateUnrealizedPL(db *gorm.DB, user models.User) float64 {
 	results, _ := queryUnrealizedPL(db, user)
 	var values float64
 	var costHoldings float64
