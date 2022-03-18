@@ -2,6 +2,7 @@ package trade
 
 import (
 	"fmt"
+	"strconv"
 	"trade-app/models"
 
 	"gorm.io/gorm"
@@ -45,24 +46,43 @@ func updateBuysQuantityTrades(db *gorm.DB, buys []TradeResultSql) {
 	}
 }
 
-// Calculates the unrealized PL of the user
-func getUnrealizedPL(db *gorm.DB, user models.User, closePrice float64, symbol string) float64 {
-	var value float64
-	var costHoldings float64
+type UnrealizedPLSqlResult struct {
+	Value        float64
+	CostHoldings float64
+	Symbol       string
+}
+
+func queryUnrealizedPL(db *gorm.DB, user models.User) ([]UnrealizedPLSqlResult, error) {
+	var results []UnrealizedPLSqlResult
 	query := `
-		SELECT SUM(t.quantity) * @closePrice as value, SUM(t.quantity * t.price) as cost_holdings
-		FROM trades t
+		SELECT p.symbol as symbol, SUM(t.quantity) as value, SUM(t.quantity * t.price) as cost_holdings
+		FROM trades as t
 		JOIN pairs p ON p.id = t.pair_id
-		WHERE t.user_id = @userId AND t.type = @type AND p.symbol = @symbol
+		WHERE t.user_id = @userId AND t.type = @type
+		GROUP BY p.symbol
 	`
 	db.Debug().Model(models.Trade{}).Raw(query, map[string]interface{}{
-		"closePrice": closePrice,
-		"userId":     user.ID,
-		"type":       models.BUY,
-		"symbol":     symbol,
-	}).Row().Scan(&value, &costHoldings)
-	fmt.Printf("value=%+v, costHoldings=%+v\n", value, costHoldings)
-	return value - costHoldings
+		"userId": user.ID,
+		"type":   models.BUY,
+	}).Scan(&results)
+	return results, nil
+}
+
+// Calculates the unrealized PL of the user
+func getUnrealizedPL(db *gorm.DB, user models.User, closePrice float64, symbol string) float64 {
+	results, _ := queryUnrealizedPL(db, user)
+	var values float64
+	var costHoldings float64
+	for _, result := range results {
+		fmt.Printf("%+v\n", result)
+		response, _ := getSymbolPrice(result.Symbol)
+		price, _ := strconv.ParseFloat(response.Price, 64)
+		values += result.Value * price
+		costHoldings += result.CostHoldings
+	}
+	fmt.Printf("unrealizedPLSqlResult=%+v\n\n", results)
+	fmt.Printf("values=%+v\n", values)
+	return values - costHoldings
 }
 
 // Calculates de cumulative PL of the user

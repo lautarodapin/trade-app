@@ -143,7 +143,16 @@ func TestMakeTrade(t *testing.T) {
 	})
 
 	t.Run("Get unrealized P L with market close at 99", func(t *testing.T) {
-		unrealizedPL := getUnrealizedPL(db, user, float64(99), SYMBOL)
+		results, _ := queryUnrealizedPL(db, user)
+		var values float64
+		var costHoldings float64
+		for _, result := range results {
+			if result.Symbol == SYMBOL {
+				values += result.Value * 99
+				costHoldings += result.CostHoldings
+			}
+		}
+		unrealizedPL := values - costHoldings
 		fmt.Println(unrealizedPL)
 		if unrealizedPL != -12 {
 			t.Errorf("Expected -12, got %f", unrealizedPL)
@@ -159,7 +168,16 @@ func TestMakeTrade(t *testing.T) {
 	})
 
 	t.Run("Get total earns", func(t *testing.T) {
-		unrealizedPL := getUnrealizedPL(db, user, float64(99), SYMBOL)
+		results, _ := queryUnrealizedPL(db, user)
+		var values float64
+		var costHoldings float64
+		for _, result := range results {
+			if result.Symbol == SYMBOL {
+				values += result.Value * 99
+				costHoldings += result.CostHoldings
+			}
+		}
+		unrealizedPL := values - costHoldings
 		cumulativePL := getCumulativePL(db, user)
 		totalEarns := cumulativePL + unrealizedPL
 		fmt.Println(totalEarns)
