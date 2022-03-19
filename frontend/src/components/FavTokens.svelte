@@ -144,6 +144,7 @@
                     <label for="amount">Amount</label>
                     <input
                         type="number"
+                        step="0.000001"
                         name="amount"
                         id="amount"
                         bind:value={amount}
@@ -179,6 +180,7 @@
                     <label for="amountSell">Amount for sell</label>
                     <input
                         type="number"
+                        step="0.000001"
                         name="amountSell"
                         id="amountSell"
                         bind:value={amountSell}
