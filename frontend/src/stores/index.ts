@@ -1,6 +1,5 @@
 import { writable } from 'svelte/store';
-import type { ApiResponse, FavPair } from '../types';
-import { Trade } from '../types';
+import type { User, ApiResponse, FavPair, Trade } from '../types';
 
 // const fakeToken = "9ae4:9c47:a59f:9427:bc36:f6ec:536f:3c83"
 const fakeToken = undefined
@@ -16,7 +15,7 @@ export const logout = () => {
     token.set('');
 }
 
-export const user = writable()
+export const user = writable<User | null>(null)
 export const favSymbols = writable<FavPair[]>([]);
 export const fetchFavSymbols = async () => {
     const token = localStorage.getItem('token');

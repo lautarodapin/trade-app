@@ -9,11 +9,14 @@
 
     token.subscribe(async (token) => {
         if (token) {
-            const response = await fetch("http://localhost:8080/user", {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            const response = await fetch(
+                "http://localhost:8080/users/current",
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
             const { data, status, message }: ApiResponse =
                 await response.json();
             if (status === "success") {
@@ -27,6 +30,9 @@
 
 <main>
     {#if $token}
+        <h1 class="text-5xl font-bold">
+            Welcome {$user?.email}
+        </h1>
         <div class="border border-red-700">
             <TokenList />
         </div>
