@@ -27,7 +27,6 @@
 
 <main>
     {#if $token}
-        <div>asd</div>
         <div class="border border-red-700">
             <TokenList />
         </div>
@@ -40,7 +39,6 @@
     {:else}
         <Login />
     {/if}
-    {JSON.stringify($user)}
 </main>
 
 <style global lang="postcss">
