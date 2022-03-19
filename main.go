@@ -20,7 +20,7 @@ func main() {
 	models.AutoMigrate(db)
 	models.InitUsers(db)
 	models.InitPairList(db)
-	models.InitFavPairList(db, false)
+	// models.InitFavPairList(db, false)
 	r := gin.Default()
 	r.Use(CORSMiddleware())
 	public := r.Group("")
