@@ -68,6 +68,8 @@ func makeTrade(buys []TradeResultSql, sale *models.Trade) []TradeResultSql {
 
 // Creates a sale based on the symbol and the amount requested
 func makeSaleTrade(db *gorm.DB, user models.User, symbol string, amount float64) models.Trade {
+	var pair models.Pair
+	db.Where("symbol = ?", symbol).First(&pair)
 	symbolRequest, _ := getSymbolPrice(symbol)
 	price, _ := strconv.ParseFloat(symbolRequest.Price, 64)
 	quantity := amount / price
@@ -80,6 +82,7 @@ func makeSaleTrade(db *gorm.DB, user models.User, symbol string, amount float64)
 		Quantity: quantity,
 		Price:    price,
 		Earns:    0,
+		PairID:   pair.ID,
 	}
 
 	makeTrade(buys, &sale)

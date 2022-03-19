@@ -11,7 +11,10 @@
     let prices: { symbol: string; price: string }[] = [];
     let symbol: string;
     let amount: number;
+    let symbolSell: string;
+    let amountSell: number;
     let buying = false;
+    let selling = false;
     const buySymbols = async () => {
         buying = true;
         const response = await fetch("http://localhost:8080/trades/buy", {
@@ -33,6 +36,29 @@
             alert(message);
         }
         buying = false;
+    };
+    const sellSymbols = async () => {
+        if ($favSymbols.length === 0) return;
+        selling = true;
+        const response = await fetch("http://localhost:8080/trades/sale", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${$token}` },
+            body: JSON.stringify({ symbol: symbolSell, amount: amountSell }),
+        });
+        const { data, status, message }: ApiResponse = await response.json();
+        if (status === "success") {
+            alert(
+                `Congratz you sell ${data.quantity.toFixed(
+                    4
+                )} of ${symbolSell} for ${data.price.toFixed(4)}$`
+            );
+            symbolSell = undefined;
+            amountSell = undefined;
+            fetchTrades();
+        } else {
+            alert(message);
+        }
+        selling = false;
     };
     const getFavPrices = async () => {
         if ($favSymbols.length === 0) return;
@@ -100,31 +126,70 @@
             </li>
         {/each}
     </ul>
-    <form on:submit|preventDefault={buySymbols}>
-        <fieldset disabled={buying}>
-            <div>
-                <label for="symbol">Symbol to buy</label>
-                <select name="symbol" id="symbol" bind:value={symbol}>
-                    <option value="">--- SELECT ---</option>
-                    {#each $favSymbols as symbol}
-                        <option value={symbol.pair.symbol}
-                            >{symbol.pair.symbol}</option
-                        >
-                    {/each}
-                </select>
-            </div>
-            <div>
-                <label for="amount">Amount</label>
-                <input
-                    type="number"
-                    name="amount"
-                    id="amount"
-                    bind:value={amount}
-                />
-            </div>
-            <div>
-                <button class="rounded-sm py-1 px-2" type="submit">BUY!</button>
-            </div>
-        </fieldset>
-    </form>
+    <div class="inline-block">
+        <form on:submit|preventDefault={buySymbols}>
+            <fieldset disabled={buying}>
+                <div>
+                    <label for="symbol">Symbol to buy</label>
+                    <select name="symbol" id="symbol" bind:value={symbol}>
+                        <option value="">--- SELECT ---</option>
+                        {#each $favSymbols as symbol}
+                            <option value={symbol.pair.symbol}
+                                >{symbol.pair.symbol}</option
+                            >
+                        {/each}
+                    </select>
+                </div>
+                <div>
+                    <label for="amount">Amount</label>
+                    <input
+                        type="number"
+                        name="amount"
+                        id="amount"
+                        bind:value={amount}
+                    />
+                </div>
+                <div>
+                    <button class="rounded-sm py-1 px-2" type="submit"
+                        >BUY!</button
+                    >
+                </div>
+            </fieldset>
+        </form>
+    </div>
+    <div class="inline-block ml-10">
+        <form on:submit|preventDefault={sellSymbols}>
+            <fieldset disabled={selling}>
+                <div>
+                    <label for="symbolSell">Symbol to sell</label>
+                    <select
+                        name="symbolSell"
+                        id="symbolSell"
+                        bind:value={symbolSell}
+                    >
+                        <option value="">--- SELECT ---</option>
+                        {#each $favSymbols as symbol}
+                            <option value={symbol.pair.symbol}
+                                >{symbol.pair.symbol}</option
+                            >
+                        {/each}
+                    </select>
+                </div>
+                <div>
+                    <label for="amountSell">Amount for sell</label>
+                    <input
+                        type="number"
+                        name="amountSell"
+                        id="amountSell"
+                        bind:value={amountSell}
+                    />
+                </div>
+                <div>
+                    <button class="rounded-sm py-1 px-2" type="submit"
+                        >SELL!</button
+                    >
+                </div>
+            </fieldset>
+        </form>
+    </div>
 </div>
