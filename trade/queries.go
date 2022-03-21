@@ -14,21 +14,20 @@ type TradeResultSql struct {
 }
 
 // Gets all buy trades order by First in first out, until reach the desired quantity
-func getBuysUntilQuantity(db *gorm.DB, user models.User, quantity float64) ([]TradeResultSql, error) {
+func getBuysUntilQuantity(db *gorm.DB, user models.User, quantity float64, symbol string) ([]TradeResultSql, error) {
 	var buys []TradeResultSql
-	err := db.Raw(`
-		SELECT *
-		FROM (
-			SELECT id, SUM(quantity) OVER(ORDER BY id) as acc
-			FROM trades
-			WHERE type = @type AND user_id = @userId
-		) as subquery
-		JOIN trades as t ON t.id = subquery.id
-		WHERE t.type = @type AND t.user_id = @userId`, // FIXME:  AND subquery.acc < @quantity for some reason it doesn't work
+	query := `
+	SELECT t.id, t.type, t.quantity, t.price, t.earns
+	FROM trades t
+	JOIN pairs p ON p.id = t.pair_id
+	WHERE t.type=@type AND t.user_id=@userId and p.symbol=@symbol and t.quantity>0
+	`
+	err := db.Raw(query, // FIXME:  AND subquery.acc < @quantity for some reason it doesn't work
 		map[string]interface{}{
 			"userId":   user.ID,
 			"type":     models.BUY,
 			"quantity": quantity,
+			"symbol":   symbol,
 		}).Scan(&buys).Error
 
 	return buys, err
