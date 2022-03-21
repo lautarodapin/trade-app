@@ -74,15 +74,14 @@ func makeTrade(buys []TradeResultSql, sale *models.Trade) ([]TradeResultSql, err
 }
 
 // Creates a sale based on the symbol and the amount requested
-func makeSaleTrade(db *gorm.DB, user models.User, symbol string, amount float64) models.Trade {
+func makeSaleTrade(db *gorm.DB, user models.User, symbol string, amount float64) (models.Trade, error) {
 	var pair models.Pair
 	db.Where("symbol = ?", symbol).First(&pair)
 	symbolRequest, _ := getSymbolPrice(symbol)
 	price, _ := strconv.ParseFloat(symbolRequest.Price, 64)
 	quantity := amount / price
 
-	buys, _ := getBuysUntilQuantity(db, user, quantity)
-
+	buys, _ := getBuysUntilQuantity(db, user, quantity, pair.Symbol)
 	sale := models.Trade{
 		UserID:   user.ID,
 		Type:     models.SELL,
@@ -92,12 +91,15 @@ func makeSaleTrade(db *gorm.DB, user models.User, symbol string, amount float64)
 		PairID:   pair.ID,
 	}
 
-	makeTrade(buys, &sale)
+	buys, err := makeTrade(buys, &sale)
+	if err != nil {
+		return models.Trade{}, err
+	}
 	updateBuysQuantityTrades(db, buys)
 
 	db.Create(&sale)
 
-	return sale
+	return sale, nil
 }
 
 func MakeTradeBuyHandler(db *gorm.DB) gin.HandlerFunc {
@@ -126,7 +128,14 @@ func MakeTradeSaleHandler(db *gorm.DB) gin.HandlerFunc {
 		c.BindJSON(&postData)
 		symbol := postData.Symbol
 		amount := postData.Amount
-		sale := makeSaleTrade(db, user, symbol, amount)
+		sale, err := makeSaleTrade(db, user, symbol, amount)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, schemas.Response{
+				Status:  "error",
+				Message: err.Error(),
+			})
+			return
+		}
 		c.JSON(http.StatusOK, schemas.Response{
 			Status:  "success",
 			Message: "Sale trade created",
