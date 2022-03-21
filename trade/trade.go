@@ -2,6 +2,7 @@ package trade
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"net/http"
@@ -46,7 +47,7 @@ func createBuyTrade(db *gorm.DB, user models.User, price float64, quantity float
 }
 
 // Loops through all the buys trades until reach the desired quantity and calculates the earns of the sale
-func makeTrade(buys []TradeResultSql, sale *models.Trade) []TradeResultSql {
+func makeTrade(buys []TradeResultSql, sale *models.Trade) ([]TradeResultSql, error) {
 	quantity := sale.Quantity
 	for i, buy := range buys {
 		if quantity == 0 || buys[i].Quantity == 0 {
@@ -63,7 +64,13 @@ func makeTrade(buys []TradeResultSql, sale *models.Trade) []TradeResultSql {
 			buys[i].Quantity = diff
 		}
 	}
-	return buys
+	if quantity > 0 {
+		return buys, errors.New("not enought to sale")
+	}
+	fmt.Print("quantity=", quantity, " \n\n")
+	fmt.Print("sale=", sale, " \n\n")
+
+	return buys, nil
 }
 
 // Creates a sale based on the symbol and the amount requested
