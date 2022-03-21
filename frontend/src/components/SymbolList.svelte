@@ -24,7 +24,6 @@
         });
         const { status, message }: ApiResponse = await response.json();
         if (status === "success") {
-            alert(message);
             fetchFavSymbols();
         } else {
             alert(message);
@@ -35,14 +34,17 @@
 <div>
     <ul>
         {#each symbols as symbol}
-            <li>
-                {symbol.symbol}
-                {#if !$favSymbols.some((favSymbol) => favSymbol.pair.symbol === symbol.symbol)}
-                    <button on:click={() => addToFav(symbol.symbol)}
-                        >Add to fav</button
+            {#if !$favSymbols.some((favSymbol) => favSymbol.pair.symbol === symbol.symbol)}
+                <span class="my-2 w-16 h-64">
+                    <button
+                        on:click={() => addToFav(symbol.symbol)}
+                        class="px-4 py-1"
                     >
-                {/if}
-            </li>
+                        {symbol.symbol}
+                        (ADD TO FAV)
+                    </button>
+                </span>
+            {/if}
         {/each}
     </ul>
 </div>

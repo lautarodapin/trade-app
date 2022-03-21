@@ -98,7 +98,6 @@
         );
         const { status, message }: ApiResponse = await response.json();
         if (status === "success") {
-            alert(message);
             fetchFavSymbols();
         } else {
             alert(message);

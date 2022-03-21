@@ -1,10 +1,11 @@
 <script lang="ts">
+    import "./global_styles.css";
     import type { ApiResponse } from "./types";
     import { onMount } from "svelte";
     import Login from "./components/Login.svelte";
-    import { token, user } from "./stores/index";
-    import TokenList from "./components/TokenList.svelte";
-    import FavTokens from "./components/FavTokens.svelte";
+    import { logout, token, user } from "./stores/index";
+    import SymbolList from "./components/SymbolList.svelte";
+    import FavSymbols from "./components/FavSymbols.svelte";
     import TradesTable from "./components/TradesTable.svelte";
 
     token.subscribe(async (token) => {
@@ -30,14 +31,17 @@
 
 <main>
     {#if $token}
-        <h1 class="text-5xl font-bold">
+        <h1 class="text-5xl font-bold flex-row flex justify-between">
             Welcome {$user?.email}
+            <button class="py-2 px-4 rounded-md" on:click={logout}
+                >Logout</button
+            >
         </h1>
         <div class="border border-red-700">
-            <TokenList />
+            <SymbolList />
         </div>
         <div class="border border-blue-700">
-            <FavTokens />
+            <FavSymbols />
         </div>
         <div class="border border-green-600">
             <TradesTable />
@@ -46,9 +50,3 @@
         <Login />
     {/if}
 </main>
-
-<style global lang="postcss">
-    @tailwind base;
-    @tailwind components;
-    @tailwind utilities;
-</style>
