@@ -8,14 +8,9 @@ import (
 	"gorm.io/gorm"
 )
 
-type TradeResultSql struct {
-	models.Trade
-	Acc float64
-}
-
 // Gets all buy trades order by First in first out, until reach the desired quantity
-func getBuysUntilQuantity(db *gorm.DB, user models.User, quantity float64, symbol string) ([]TradeResultSql, error) {
-	var buys []TradeResultSql
+func getBuysUntilQuantity(db *gorm.DB, user models.User, quantity float64, symbol string) ([]models.Trade, error) {
+	var buys []models.Trade
 	query := `
 	SELECT t.id, t.type, t.quantity, t.price, t.earns
 	FROM trades t
@@ -34,7 +29,7 @@ func getBuysUntilQuantity(db *gorm.DB, user models.User, quantity float64, symbo
 }
 
 // Update all the quantities of the buy trades
-func updateBuysQuantityTrades(db *gorm.DB, buys []TradeResultSql) {
+func updateBuysQuantityTrades(db *gorm.DB, buys []models.Trade) {
 	for _, buy := range buys {
 		db.Raw(`
 			UPDATE trades

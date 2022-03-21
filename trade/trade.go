@@ -47,7 +47,7 @@ func createBuyTrade(db *gorm.DB, user models.User, price float64, quantity float
 }
 
 // Loops through all the buys trades until reach the desired quantity and calculates the earns of the sale
-func makeTrade(buys []TradeResultSql, sale *models.Trade) ([]TradeResultSql, error) {
+func makeTrade(buys []models.Trade, sale *models.Trade) ([]models.Trade, error) {
 	quantity := sale.Quantity
 	for i, buy := range buys {
 		if quantity == 0 || buys[i].Quantity == 0 {
