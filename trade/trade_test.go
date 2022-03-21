@@ -83,8 +83,11 @@ func TestMakeTrade(t *testing.T) {
 			UserID:   user.ID,
 		}
 
-		buys, _ := getBuysUntilQuantity(db, user, sale.Quantity)
-		buys = makeTrade(buys, &sale)
+		buys, _ := getBuysUntilQuantity(db, user, sale.Quantity, SYMBOL)
+		buys, err := makeTrade(buys, &sale)
+		if err != nil {
+			t.Fatal(err)
+		}
 		updateBuysQuantityTrades(db, buys)
 
 		db.Create(&sale)
@@ -119,8 +122,11 @@ func TestMakeTrade(t *testing.T) {
 			Earns:    0,
 			UserID:   user.ID,
 		}
-		buys, _ := getBuysUntilQuantity(db, user, sale.Quantity)
-		buys = makeTrade(buys, &sale)
+		buys, _ := getBuysUntilQuantity(db, user, sale.Quantity, SYMBOL)
+		buys, err := makeTrade(buys, &sale)
+		if err != nil {
+			t.Fatal(err)
+		}
 		updateBuysQuantityTrades(db, buys)
 
 		db.Create(&sale)
@@ -189,6 +195,22 @@ func TestMakeTrade(t *testing.T) {
 		if totalEarns != 18 {
 			t.Errorf("Expected 18, got %f", totalEarns)
 		}
+	})
+
+	t.Run("Sale more than 19 at any price raise error", func(t *testing.T) {
+		sale := models.Trade{
+			Type:     models.SELL,
+			Quantity: 100,
+			Price:    105,
+			Earns:    0,
+			UserID:   user.ID,
+		}
+		buys, _ := getBuysUntilQuantity(db, user, sale.Quantity, SYMBOL)
+		_, err := makeTrade(buys, &sale)
+		if err == nil {
+			t.Errorf("Expected an error, got %v", err)
+		}
+
 	})
 
 	t.Run("Get pair price for BTCUSDT", func(t *testing.T) {
