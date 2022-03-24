@@ -1,0 +1,1 @@
+export const API_URL = IS_PROD ? "http://167.99.59.103:8080" : "http://localhost:8080"; 

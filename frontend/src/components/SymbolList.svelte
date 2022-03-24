@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { API_URL } from "./../utils";
     import { onMount } from "svelte";
     import { favSymbols, fetchFavSymbols, token } from "../stores/index";
     import type { ApiResponse } from "../types";
@@ -6,7 +7,7 @@
     let symbols: { id: number; symbol: string }[] = [];
 
     onMount(async () => {
-        const response = await fetch("http://localhost:8080/pair-list/", {
+        const response = await fetch(`${API_URL}/pair-list/`, {
             headers: {
                 Authorization: `Bearer ${$token}`,
             },
@@ -15,7 +16,7 @@
         symbols = data;
     });
     const addToFav = async (symbol: string) => {
-        const response = await fetch("http://localhost:8080/pair-list/fav", {
+        const response = await fetch(`${API_URL}/pair-list/fav`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${$token}`,

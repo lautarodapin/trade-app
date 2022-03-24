@@ -7,17 +7,16 @@
     import SymbolList from "./components/SymbolList.svelte";
     import FavSymbols from "./components/FavSymbols.svelte";
     import TradesTable from "./components/TradesTable.svelte";
+    import { API_URL } from "./utils";
 
+    console.log(IS_PROD);
     token.subscribe(async (token) => {
         if (token) {
-            const response = await fetch(
-                "http://localhost:8080/users/current",
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+            const response = await fetch(`${API_URL}/users/current`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
             const { data, status, message }: ApiResponse =
                 await response.json();
             if (status === "success") {

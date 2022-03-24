@@ -1,11 +1,12 @@
 <script lang="ts">
+    import { API_URL } from "./../utils";
     import { login } from "../stores/index";
     import type { ApiResponse } from "../types";
 
     let email = "";
     let password = "";
     const submitForm = async () => {
-        const response = await fetch("http://localhost:8080/login", {
+        const response = await fetch(`${API_URL}/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

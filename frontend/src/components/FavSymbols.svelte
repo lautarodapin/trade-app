@@ -7,6 +7,7 @@
         token,
     } from "../stores/index";
     import type { ApiResponse } from "../types";
+    import { API_URL } from "../utils";
 
     let prices: { symbol: string; price: string }[] = [];
     let symbol: string;
@@ -17,7 +18,7 @@
     let selling = false;
     const buySymbols = async () => {
         buying = true;
-        const response = await fetch("http://localhost:8080/trades/buy", {
+        const response = await fetch(`${API_URL}/trades/buy`, {
             method: "POST",
             headers: { Authorization: `Bearer ${$token}` },
             body: JSON.stringify({ symbol, amount }),
@@ -40,7 +41,7 @@
     const sellSymbols = async () => {
         if ($favSymbols.length === 0) return;
         selling = true;
-        const response = await fetch("http://localhost:8080/trades/sale", {
+        const response = await fetch(`${API_URL}/trades/sale`, {
             method: "POST",
             headers: { Authorization: `Bearer ${$token}` },
             body: JSON.stringify({ symbol: symbolSell, amount: amountSell }),
@@ -62,14 +63,11 @@
     };
     const getFavPrices = async () => {
         if ($favSymbols.length === 0) return;
-        const response = await fetch(
-            "http://localhost:8080/pair-list/fav/prices",
-            {
-                headers: {
-                    Authorization: `Bearer ${$token}`,
-                },
-            }
-        );
+        const response = await fetch(`${API_URL}/pair-list/fav/prices`, {
+            headers: {
+                Authorization: `Bearer ${$token}`,
+            },
+        });
         const { data, status, message }: ApiResponse = await response.json();
         if (status === "success") {
             prices = data;
@@ -88,7 +86,7 @@
 
     const removeFromFav = async (id: number) => {
         const response = await fetch(
-            "http://localhost:8080/pair-list/fav/" + id.toString(),
+            `${API_URL}/pair-list/fav/` + id.toString(),
             {
                 method: "DELETE",
                 headers: {

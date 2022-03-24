@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { API_URL } from "./../utils";
     import { onMount } from "svelte";
     import { fetchTrades, token, trades } from "../stores/index";
     import { TradeType, type ApiResponse } from "../types";
@@ -8,7 +9,7 @@
     let cumulative_pl = 0;
 
     const getEarns = async () => {
-        const response = await fetch("http://localhost:8080/trades/earns", {
+        const response = await fetch(`${API_URL}/trades/earns`, {
             headers: { Authorization: `Bearer ${$token}` },
         });
         const { data, status, message }: ApiResponse = await response.json();
